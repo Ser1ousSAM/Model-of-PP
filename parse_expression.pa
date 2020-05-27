@@ -1,0 +1,125 @@
+main:
+    CALL expression:
+    NEQ [eex] 0
+    JZ error:
+    PRINT eax
+    JUMP end:
+
+expression:
+    CALL term:
+    PUSH eax
+e_next:
+    EQ [eex] 43
+    JNZ e_next_:
+    INC eex
+    CALL term:
+    POP ebx
+    ADD ebx eax
+    PUSH eax
+    JUMP e_next:
+e_next_:
+    EQ [eex] 45
+    JNZ e_ret:
+    INC eex
+    CALL term:
+    POP ebx
+    SUB ebx eax
+    PUSH eax
+    JUMP e_next:
+e_ret:
+    POP eax
+    RETURN
+
+term:
+    CALL factor:
+    PUSH eax
+t_next:
+    EQ [eex] 42
+    JNZ t_next_:
+    INC eex
+    CALL factor:
+    POP ebx
+    MUL ebx eax
+    PUSH eax
+    JUMP t_next:
+t_next_:
+    EQ [eex] 47
+    JNZ t_next__:
+    INC eex
+    CALL factor:
+    POP ebx
+    DIV ebx eax
+    PUSH eax
+    JUMP t_next:
+t_next__:
+    EQ [eex] 37
+    JNZ t_ret:
+    INC eex
+    CALL factor:
+    POP ebx
+    MOD ebx eax
+    PUSH eax
+    JUMP t_next:
+t_ret:
+    POP eax
+    RETURN
+
+factor:
+    EQ [eex] 40
+    JNZ f_int:
+    INC eex
+    CALL expression:
+    EQ [eex] 41
+    JNZ error:
+    INC eex
+    JUMP f_ret:
+f_int:
+    CALL int:
+f_ret:
+    RETURN
+
+to_digit:
+    SET df
+    LEQ [eex] 57
+    MOV bf af
+    LEQ 48 [eex]
+    AND af bf
+    JZ to_digit_ret:
+    UNSET df
+to_digit_ret:
+    MOV af df
+    SUB [eex] 48
+    RETURN
+
+int:
+    UNSET cf
+    MOV ecx 0
+    MOV ebx 0
+    EQ [eex] 45
+    JNZ i_digit:
+    SET cf
+    INC eex
+i_digit:
+    CALL to_digit:
+    JNZ i_check:
+    INC ecx
+    MOV edx eax
+    MUL ebx 10
+    ADD eax edx
+    MOV ebx eax
+    INC eex
+    JUMP i_digit:
+i_check:
+    EQ ecx 0
+    JZ error:
+    MOV af cf
+    JNZ i_ret:
+    NEG ebx
+i_ret:
+    MOV eax ebx
+    RETURN
+
+error:
+    PRINT -1
+
+end:
