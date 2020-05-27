@@ -1,0 +1,49 @@
+JUMP read_int:
+
+to_digit:
+    SET df
+    LEQ [eex] 57
+    MOV bf af
+    LEQ 48 [eex]
+    AND af bf
+    JZ to_digit_ret:
+    UNSET df
+to_digit_ret:
+    MOV af df
+    SUB [eex] 48
+    RETURN
+
+read_int:
+    MOV ecx 0
+    MOV ebx 0
+    EQ [eex] 45
+    JNZ next_digit:
+    SET cf
+    INC eex
+next_digit:
+    CALL to_digit:
+    JNZ read_int_ret:
+    INC ecx
+    MOV ecx eax
+    MUL ebx 10
+    ADD eax ecx
+    MOV ebx eax
+    INC eex
+    JUMP next_digit:
+read_int_ret:
+    EQ [eex] 0
+    MOV bf af
+    EQ ecx 0
+    OR af bf
+    JNZ error:
+    MOV af cf
+    JNZ print_int:
+    NEG ebx
+print_int:
+    PRINT ebx
+    JUMP end:
+
+error:
+    PRINT -1
+
+end:
